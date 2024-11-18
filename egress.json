@@ -1,0 +1,14 @@
+{
+  "room_name": "my-room",
+  "layout": "grid",
+  "preset": "H264_720P_30",
+  "audio_only": false,
+  "segment_outputs": [
+    {
+      "filename_prefix": "egress",
+      "playlist_name": "egress.m3u8",
+      "live_playlist_name": "egress-live.m3u8",
+      "segment_duration": 2
+    }
+  ]
+}
