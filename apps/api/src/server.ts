@@ -1,8 +1,9 @@
 import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, Room, RoomServiceClient } from 'livekit-server-sdk';
 import "dotenv/config";
+import { nanoid } from "nanoid";
 
 const createToken = async () => {
   // If this room doesn't exist, it'll be automatically created when the first
@@ -21,7 +22,6 @@ const createToken = async () => {
 
   return await at.toJwt();
 };
-let i = 0;
 
 export const createServer = (): Express => {
   const app = express();
@@ -37,10 +37,20 @@ export const createServer = (): Express => {
     return res.json({ token });
   });
 
+  app.post('/createRoom', async (req, res) => {
+    const livekitHost = 'http://localhost:7880';
+    const roomService = new RoomServiceClient(livekitHost, process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET);
 
-  app.get("/turn", (req, res) => {
-    i++;
-    return res.json({ index: i });
+    const opts = {
+      name: nanoid(),
+      emptyTimeout: 10 * 60, // 10 minutes
+      maxParticipants: 20,
+    };
+
+    roomService.createRoom(opts).then((room: Room) => {
+      console.log('room created', room);
+      return res.json({ room });
+    });
   });
 
   return app;
