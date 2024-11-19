@@ -118,13 +118,65 @@ function ChatComponent() {
 }
 
 function ChangeSlide({ recordMaps }: { recordMaps: any[] }) {
-  const [slideIndex, setSlideIndex] = React.useState(0)
+  const [index, setIndex] = React.useState(0)
+  const socket = React.useRef<WebSocket | null>(null)
+  const socketId = React.useRef<string | null>(null)
+  const roomId = React.useRef<string | null>(null)
+
+  React.useEffect(() => {
+    if (!socket.current) {
+      socket.current = new WebSocket('ws://127.0.0.1:5858')
+    }
+
+    if (!socket.current) return;
+
+    socket.current.onopen = () => {
+      socket.current?.send(JSON.stringify({ type: 'join', roomId: 1 }))
+    }
+
+    socket.current.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      switch (data.type) {
+        case 'socket_id': {
+          roomId.current = data.roomId
+          socketId.current = data.socketId
+          break;
+        }
+
+        case 'change_slide': {
+          console.log('change slide from server', data.slideIndex)
+          setIndex(data.slideIndex)
+          break;
+        }
+      }
+    }
+  }, [])
+
+  const changeSlide = async (i: number) => {
+    if (!socket.current) return;
+    console.log('change slide from client', i)
+    socket.current.send(JSON.stringify({ type: 'change_slide', roomId: roomId.current, slideIndex: i }))
+  }
+
 
   return <div>
     <div className='flex flex-row justify-between'>
-      <button onClick={() => setSlideIndex((prev) => Math.max(prev - 1, 0))}>{slideIndex > 0 && "Prev"}</button>
-      <button onClick={() => setSlideIndex((prev) => Math.min(prev + 1, recordMaps.length - 1))}>{slideIndex < recordMaps.length - 1 && "Next"}</button>
+      <button onClick={() => {
+        setIndex((prev) => {
+          const res = Math.max(prev - 1, 0)
+          changeSlide(res)
+          return res
+        })
+      }
+      }>{index > 0 && "Prev"}</button>
+      <button onClick={() => {
+        setIndex((prev) => {
+          const res = Math.min(prev + 1, recordMaps.length - 1)
+          changeSlide(res)
+          return res
+        })
+      }}>{index < recordMaps.length - 1 && "Next"}</button>
     </div>
-    <NotionRenderer recordMap={recordMaps[slideIndex]} header={false} darkMode={true} />
-  </div>
+    <NotionRenderer recordMap={recordMaps[index]} header={false} darkMode={true} />
+  </div >
 }

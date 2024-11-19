@@ -4,6 +4,7 @@ import fastify from 'fastify'
 import { makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
 import { loadAsset, storeAsset } from './assets'
+import { nanoid } from 'nanoid'
 
 const PORT = 5858;
 
@@ -12,6 +13,15 @@ const PORT = 5858;
 const app = fastify()
 app.register(websocketPlugin)
 app.register(cors, { origin: '*' })
+
+const socketMap = new Map<string, WebSocket>()
+const roomMap = new Map<string, string[]>()
+
+enum MessageType {
+  JOIN = 'join',
+  CHANGE_SLIDE = 'change_slide',
+  LEAVE = 'leave',
+}
 
 app.register(async (app) => {
   // This is the main entrypoint for the multiplayer sync
@@ -26,6 +36,40 @@ app.register(async (app) => {
     const room = await makeOrLoadRoom(roomId)
     // and finally connect the socket to the room
     room.handleSocketConnect({ sessionId, socket })
+  })
+
+  app.get('/', { websocket: true }, async (socket, req) => {
+    socket.on('message', (message) => {
+      const data = JSON.parse(message.toString())
+      switch (data.type) {
+        case MessageType.JOIN: {
+          const socketId = nanoid()
+          socketMap.set(socketId, socket)
+          const roomId = data.roomId as string
+          if (!roomMap.has(roomId)) {
+            roomMap.set(roomId, [])
+          }
+
+          roomMap.get(roomId)?.push(socketId);
+          socket.send(JSON.stringify({ type: 'socket_id', socketId, roomId: roomId }))
+          break;
+        }
+        case MessageType.CHANGE_SLIDE: {
+          const { roomId, slideIndex } = data as { socketId: string; roomId: string; slideIndex: number }
+          const sockets = roomMap.get(roomId)
+          if (sockets) {
+            sockets.forEach((socketId) => {
+              console.log('broadcasting to', socketId);
+              const socket = socketMap.get(socketId)
+              if (socket) {
+                socket.send(JSON.stringify({ type: 'change_slide', socketId, slideIndex }))
+              }
+            })
+          }
+          break;
+        }
+      }
+    })
   })
 
   // To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests

@@ -9,6 +9,7 @@
     "@tldraw/sync": "^3.4.1",
     "@tldraw/sync-core": "^3.4.1",
     "fastify": "^5.1.0",
+    "nanoid": "^5.0.8",
     "tsup": "^8.0.2",
     "unfurl.js": "^6.4.0",
     "ws": "^8.18.0"
