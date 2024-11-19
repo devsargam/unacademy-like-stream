@@ -4,11 +4,15 @@ import cors from "cors";
 import { AccessToken, Room, RoomServiceClient } from 'livekit-server-sdk';
 import "dotenv/config";
 import { nanoid } from "nanoid";
+import { NotionAPI } from 'notion-client'
 
 interface CreateTokenOptions {
   roomName: string;
   participantName: string;
 }
+
+
+const notion = new NotionAPI()
 
 const createToken = async ({
   roomName,
@@ -61,6 +65,16 @@ export const createServer = (): Express => {
       console.log('room created', room);
       return res.json({ room });
     });
+  });
+
+  app.get('/getPdf/:id', async (req, res) => {
+    const recordMaps = await Promise.all([
+      notion.getPage('14382f1740e4800ca6ddcc9d89c9e355'),
+      notion.getPage('14382f1740e480fba245f8990fe7bf88'),
+      notion.getPage('14382f1740e480f7974bd74c0a964d52')
+    ])
+
+    return res.json({ recordMaps })
   });
 
   return app;

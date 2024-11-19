@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useLoaderData } from '@tanstack/react-router'
 import { nanoid } from 'nanoid'
 import { useGetAccessToken } from '../../fetchers/get-access-token'
 import {
@@ -13,15 +13,18 @@ import {
 } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { Track } from 'livekit-client';
+import axios from 'axios';
+import { NotionRenderer } from 'react-notion-x'
+import 'react-notion-x/src/styles.css'
 import { TldrawComp } from '../../components/tldraw-comp';
+import './style.css'
+
 
 const serverUrl = 'ws://127.0.0.1:7880';
 
 export const Route = createFileRoute('/join/$id')({
   loader: async ({ params }) => {
-    return {
-      id: params.id,
-    }
+    return await axios.get(`http://localhost:5001/getPdf/${params.id}`).then(res => res.data);
   },
   component: JoinRoom,
 })
@@ -29,6 +32,7 @@ export const Route = createFileRoute('/join/$id')({
 const username = nanoid()
 function JoinRoom() {
   const { id } = Route.useParams()
+  const { recordMaps } = Route.useLoaderData()
 
   // Ask the person for the username
   // const [username, setUsername] = React.useState('')
@@ -43,8 +47,6 @@ function JoinRoom() {
   if (isErrorToken) {
     return <div>Error</div>
   }
-  console.log(tokenData)
-
   return (
     <div className='flex flex-row h-full'>
       <LiveKitRoom
@@ -53,8 +55,9 @@ function JoinRoom() {
         token={tokenData.token}
         serverUrl={serverUrl}
         data-lk-theme="default"
-        style={{ height: '100vh', display: 'flex', flexDirection: 'row' }}
+        style={{ height: '100vh', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
       >
+        <ChangeSlide recordMaps={recordMaps} />
         {/* <TldrawComp roomId={id} /> */}
         <div>
           {/* Your custom component with basic video conferencing functionality. */}
@@ -112,4 +115,16 @@ function ChatComponent() {
       <button type='submit' className='bg-blue-500 hover:bg-blue-700 text-white font-boldk px-4 rounded'>Send</button>
     </form>
   </div >
+}
+
+function ChangeSlide({ recordMaps }: { recordMaps: any[] }) {
+  const [slideIndex, setSlideIndex] = React.useState(0)
+
+  return <div>
+    <div className='flex flex-row justify-between'>
+      <button onClick={() => setSlideIndex((prev) => Math.max(prev - 1, 0))}>{slideIndex > 0 && "Prev"}</button>
+      <button onClick={() => setSlideIndex((prev) => Math.min(prev + 1, recordMaps.length - 1))}>{slideIndex < recordMaps.length - 1 && "Next"}</button>
+    </div>
+    <NotionRenderer recordMap={recordMaps[slideIndex]} header={false} darkMode={true} />
+  </div>
 }
