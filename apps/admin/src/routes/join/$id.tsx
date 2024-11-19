@@ -18,6 +18,7 @@ import { NotionRenderer } from 'react-notion-x'
 import 'react-notion-x/src/styles.css'
 import { TldrawComp } from '../../components/tldraw-comp';
 import './style.css'
+import BottomBar from '../../components/bottom-bar';
 
 
 const serverUrl = 'ws://127.0.0.1:7880';
@@ -33,6 +34,7 @@ const username = nanoid()
 function JoinRoom() {
   const { id } = Route.useParams()
   const { recordMaps } = Route.useLoaderData()
+  const [currentTab, setCurrentTab] = React.useState<'slides' | 'whiteboard' | 'zoom'>('slides')
 
   // Ask the person for the username
   // const [username, setUsername] = React.useState('')
@@ -48,26 +50,30 @@ function JoinRoom() {
     return <div>Error</div>
   }
   return (
-    <div className='flex flex-row h-full'>
+    <div className='flex flex-col h-full'>
+      <BottomBar currentTab={currentTab} setCurrentTab={setCurrentTab} />
       <LiveKitRoom
         video={true}
         audio={true}
         token={tokenData.token}
         serverUrl={serverUrl}
         data-lk-theme="default"
-        style={{ height: '100vh', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
+        style={{ height: 'calc(100vh - 48px)', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
       >
-        <ChangeSlide recordMaps={recordMaps} />
-        {/* <TldrawComp roomId={id} /> */}
-        <div>
+        {currentTab === 'slides' && <ChangeSlide recordMaps={recordMaps} />}
+        {currentTab === 'whiteboard' && <TldrawComp roomId={id} />}
+        {currentTab === 'zoom' && <div className='relative'>
           {/* Your custom component with basic video conferencing functionality. */}
-          {/* <MyVideoConference /> */}
+          <MyVideoConference />
           {/* The RoomAudioRenderer takes care of room-wide audio for you. */}
-          {/* <RoomAudioRenderer /> */}
+          <RoomAudioRenderer />
           {/* Controls for the user to start/stop audio, video, and screen
            share tracks and to leave the room. */}
-          {/* <ControlBar /> */}
+          <div className='absolute bottom-0 left-0 right-0'>
+            <ControlBar />
+          </div>
         </div>
+        }
         <ChatComponent />
       </LiveKitRoom>
     </div>
@@ -85,7 +91,7 @@ function MyVideoConference() {
   );
   return (
     <>
-      <GridLayout tracks={tracks} style={{ height: 'calc(100vh - var(--lk-control-bar-height))' }}>
+      <GridLayout tracks={tracks} style={{ height: 'calc(100vh - 48px)' }}>
         {/* The GridLayout accepts zero or one child. The child is used
       as a template to render all passed in tracks. */}
         <ParticipantTile />
@@ -105,13 +111,16 @@ function ChatComponent() {
   }
 
   return <div className='flex flex-col justify-between'>
-    <div className='flex flex-col gap-x-2'>
-      {chatMessages.map((message) => (
-        <div key={message.id} className='text-white'><span className='font-bold'>{message.from?.name}</span>: {message.message}</div>
-      ))}
+    <div className='flex flex-col gap-y-2'>
+      <h1 className='text-2xl font-bold text-white'>Chat</h1>
+      <div className='flex flex-col gap-x-2'>
+        {chatMessages.map((message) => (
+          <div key={message.id} className='text-white'><span className='font-bold'>{message.from?.name}</span>: {message.message}</div>
+        ))}
+      </div>
     </div>
     <form onSubmit={handleSend} className='flex gap-y-0.5 flex-col'>
-      <input type="text" value={message} autoFocus onChange={(e) => setMessage(e.target.value)} />
+      <input type="text" className='border border-white' value={message} autoFocus onChange={(e) => setMessage(e.target.value)} />
       <button type='submit' className='bg-blue-500 hover:bg-blue-700 text-white font-boldk px-4 rounded'>Send</button>
     </form>
   </div >

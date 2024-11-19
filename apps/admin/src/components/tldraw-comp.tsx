@@ -14,9 +14,9 @@ export function TldrawComp({ roomId }: { roomId: string }) {
   })
 
   return (
-    <div className='bottom-0 left-0 right-0 top-0 w-full h-screen'>
+    <div className='bottom-0 left-0 right-0 top-0 w-full h-[calc(100vh-48px)]'>
       <Tldraw
-        className='h-full mr-72'
+        className='h-[calc(100vh-100px)] mr-72'
         store={store}
         onMount={(editor) => {
           // @ts-expect-error
