@@ -5,13 +5,19 @@ import { AccessToken, Room, RoomServiceClient } from 'livekit-server-sdk';
 import "dotenv/config";
 import { nanoid } from "nanoid";
 
-const createToken = async () => {
+interface CreateTokenOptions {
+  roomName: string;
+  participantName: string;
+}
+
+const createToken = async ({
+  roomName,
+  participantName,
+}: CreateTokenOptions) => {
   // If this room doesn't exist, it'll be automatically created when the first
   // participant joins
-  const roomName = 'test_room';
   // Identifier to be used for participant.
   // It's available as LocalParticipant.identity with livekit-client SDK
-  const participantName = 'sargam';
 
   const at = new AccessToken(process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET, {
     identity: participantName,
@@ -19,6 +25,7 @@ const createToken = async () => {
     ttl: '24h',
   });
   at.addGrant({ roomJoin: true, room: roomName });
+  at.addGrant({ canPublish: true });
 
   return await at.toJwt();
 };
@@ -32,8 +39,11 @@ export const createServer = (): Express => {
     .use(express.json())
     .use(cors({ origin: '*' }))
 
-  app.get('/getToken', async (req, res) => {
-    const token = await createToken();
+  app.post('/getToken', async (req, res) => {
+    // TODO: Validate the request body with zod
+    const { roomName, participantName } = req.body;
+
+    const token = await createToken({ roomName, participantName });
     return res.json({ token });
   });
 
