@@ -15,11 +15,13 @@
     "@repo/ui": "workspace:*",
     "@tanstack/react-query": "4",
     "@tanstack/react-router": "^1.82.1",
+    "@tldraw/sync": "^3.4.1",
     "axios": "^1.7.7",
     "livekit-client": "^2.6.1",
     "nanoid": "^5.0.8",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tldraw": "^3.4.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

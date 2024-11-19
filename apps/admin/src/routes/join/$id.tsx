@@ -13,6 +13,7 @@ import {
 } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { Track } from 'livekit-client';
+import { TldrawComp } from '../../components/tldraw-comp';
 
 const serverUrl = 'ws://127.0.0.1:7880';
 
@@ -45,16 +46,16 @@ function JoinRoom() {
   console.log(tokenData)
 
   return (
-    <div>
+    <div className='flex flex-row h-full'>
       <LiveKitRoom
         video={true}
         audio={true}
         token={tokenData.token}
         serverUrl={serverUrl}
-        // Use the default LiveKit theme for nice styles.
         data-lk-theme="default"
         style={{ height: '100vh', display: 'flex', flexDirection: 'row' }}
       >
+        {/* <TldrawComp roomId={id} /> */}
         <div>
           {/* Your custom component with basic video conferencing functionality. */}
           {/* <MyVideoConference /> */}
@@ -68,7 +69,6 @@ function JoinRoom() {
       </LiveKitRoom>
     </div>
   );
-  <div className='text-red-600'>Hello {username}</div>
 }
 function MyVideoConference() {
   // `useTracks` returns all camera and screen share tracks. If a user
@@ -104,7 +104,7 @@ function ChatComponent() {
   return <div className='flex flex-col justify-between'>
     <div className='flex flex-col gap-x-2'>
       {chatMessages.map((message) => (
-        <div key={message.id}><span className='font-bold'>{message.from?.name}</span>: {message.message}</div>
+        <div key={message.id} className='text-white'><span className='font-bold'>{message.from?.name}</span>: {message.message}</div>
       ))}
     </div>
     <form onSubmit={handleSend} className='flex gap-y-0.5 flex-col'>

@@ -1,0 +1,19 @@
+{
+  "name": "@repo/ws",
+  "scripts": {
+    "dev": "tsup --watch --onSuccess \"node dist/index.mjs\""
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.1",
+    "@fastify/websocket": "^11.0.1",
+    "@tldraw/sync": "^3.4.1",
+    "@tldraw/sync-core": "^3.4.1",
+    "fastify": "^5.1.0",
+    "tsup": "^8.0.2",
+    "unfurl.js": "^6.4.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24"
+  }
+}
